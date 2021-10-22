@@ -52,7 +52,7 @@ func (s *Shlex) push_source(newstream io.Reader, newfile string) { // ""
 }
 
 func (s *Shlex) pop_source() error {
-	if c, ok:=s.instream.(io.ReadCloser);ok{
+	if c, ok := s.instream.(io.ReadCloser); ok {
 		if err := c.Close(); err != nil {
 			return err
 		}
@@ -147,11 +147,11 @@ func (s *Shlex) ReadRoken() (string, error) {
 		} else {
 			nc := make([]byte, 1)
 			if _, err := s.instream.Read(nc); err != nil {
-				if err != io.EOF || (s.token=="" &&!quoted){
+				if err != io.EOF || (s.token == "" && !quoted) {
 					return "", err
 				}
 				nextchar = ""
-			}else{
+			} else {
 				nextchar = string(nc)
 			}
 		}
@@ -215,7 +215,7 @@ func (s *Shlex) ReadRoken() (string, error) {
 					continue
 				}
 			}
-		} else if s.state!= nil && strings.Contains(s.Quotes, *s.state) {
+		} else if s.state != nil && strings.Contains(s.Quotes, *s.state) {
 			quoted = true
 			if nextchar == "" {
 				if s.debug >= 2 {
@@ -223,7 +223,7 @@ func (s *Shlex) ReadRoken() (string, error) {
 				}
 				return "", fmt.Errorf("No closing quotation")
 			}
-			if s.state!= nil && nextchar == *s.state {
+			if s.state != nil && nextchar == *s.state {
 				if !s.posix {
 					s.token += nextchar
 					s.state = new(string)
@@ -233,27 +233,27 @@ func (s *Shlex) ReadRoken() (string, error) {
 					s.state = new(string)
 					*s.state = "a"
 				}
-			} else if s.posix && strings.Contains(s.escape, nextchar) && s.state!= nil && strings.Contains(s.escapedquotes, *s.state) {
+			} else if s.posix && strings.Contains(s.escape, nextchar) && s.state != nil && strings.Contains(s.escapedquotes, *s.state) {
 				escapedstate = *s.state
 				s.state = new(string)
 				*s.state = nextchar
 			} else {
 				s.token += nextchar
 			}
-		} else if s.state!= nil && strings.Contains(s.escape, *s.state) {
+		} else if s.state != nil && strings.Contains(s.escape, *s.state) {
 			if nextchar == "" {
 				if s.debug >= 2 {
 					print("shlex: I see EOF in escape state")
 				}
 				return "", fmt.Errorf("No escaped character")
 			}
-			if strings.Contains(s.Quotes, escapedstate) && (s.state==nil ||nextchar != *s.state) && nextchar != escapedstate {
+			if strings.Contains(s.Quotes, escapedstate) && (s.state == nil || nextchar != *s.state) && nextchar != escapedstate {
 				s.token += *s.state
 			}
 			s.token += nextchar
 			s.state = new(string)
 			*s.state = escapedstate
-		} else if s.state!= nil && strings.Contains("ac", *s.state) {
+		} else if s.state != nil && strings.Contains("ac", *s.state) {
 			if nextchar == "" {
 				s.state = nil
 				break
@@ -285,7 +285,7 @@ func (s *Shlex) ReadRoken() (string, error) {
 						continue
 					}
 				}
-			} else if s.state!= nil && *s.state == "c" {
+			} else if s.state != nil && *s.state == "c" {
 				if strings.Contains(
 					s.punctuation_chars, nextchar) {
 					s.token += nextchar
@@ -304,7 +304,7 @@ func (s *Shlex) ReadRoken() (string, error) {
 				escapedstate = "a"
 				s.state = new(string)
 				*s.state = nextchar
-			} else if strings.Contains(s.Wordchars, nextchar) || strings.Contains(s.Quotes, nextchar) || (s.whitespace_split&& !strings.Contains(s.punctuation_chars, nextchar)) {
+			} else if strings.Contains(s.Wordchars, nextchar) || strings.Contains(s.Quotes, nextchar) || (s.whitespace_split && !strings.Contains(s.punctuation_chars, nextchar)) {
 				s.token += nextchar
 			} else {
 				if s.punctuation_chars != "" {
@@ -389,7 +389,7 @@ func Split(s io.Reader, comments, posix bool) ([]string, error) { // false, true
 	for {
 		token, err := lex.GetToken()
 		if err != nil {
-			if err!=io.EOF{
+			if err != io.EOF {
 				return nil, err
 			}
 			break
@@ -460,19 +460,19 @@ func NewShlex(instream io.Reader, infile string, posix bool, punctuation_chars s
 	s.filestack = list.List{}
 	s.source = ""
 	s.punctuation_chars = punctuation_chars
-	if punctuation_chars!="" {
+	if punctuation_chars != "" {
 		s._pushback_chars = list.List{}
 		s.Wordchars += "~-./*?="
-		w :=[]byte{}
-		for _, c :=range s.Wordchars {
+		w := []byte{}
+		for _, c := range s.Wordchars {
 			in := false
-			for _, p := range punctuation_chars{
-				if p == c{
+			for _, p := range punctuation_chars {
+				if p == c {
 					in = true
 					break
 				}
 			}
-			if ! in {
+			if !in {
 				w = append(w, byte(c))
 			}
 		}
@@ -483,4 +483,47 @@ func NewShlex(instream io.Reader, infile string, posix bool, punctuation_chars s
 
 func DefaultShlex(instream io.Reader) *Shlex {
 	return NewShlex(instream, "", false, "")
+}
+
+const (
+	DefaultCommenters      = "#"
+	DefaultWordChars       = "abcdfeghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
+	DefaultPOSIXWordChars  = "abcdfeghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ"
+	DefaultWhiteSpace      = " \t\r\n"
+	DefualtWhiteSpaceSplit = false
+	Quotes                 = "'\""
+	Escape                 = "\\"
+	EscapedQuotes          = "\""
+)
+
+type MyShlexConfig struct {
+}
+
+var DefaultMyShlexConfig = MyShlexConfig{}
+
+type MyShlex struct {
+	instream io.Reader
+}
+
+func (*MyShlex) Check() error {
+	return nil
+}
+
+func (*MyShlex) Next() (string, error) {
+	return "", nil
+}
+
+func (*MyShlex) Split() ([]string, error) {
+	return nil, nil
+}
+
+func NewMyShlex(reader io.Reader, config *MyShlexConfig) *MyShlex {
+	s := &MyShlex{instream: reader}
+
+	sConfig := DefaultMyShlexConfig
+	if config != nil {
+		sConfig = *config
+	}
+
+	return s
 }
